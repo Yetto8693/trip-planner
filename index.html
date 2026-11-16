@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 맞춤 여행 플래너</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Font (Inter) -->
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Pretendard', sans-serif;
+            background-color: #f8fafc;
+        }
+        /* Custom scrollbar for smooth UI */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 9999px;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-white border-b border-slate-100 sticky top-0 z-30 shadow-xs">
+        <div class="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+                <div class="w-9 h-9 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-bold shadow-md shadow-indigo-200">
+                    ✈️
+                </div>
+                <div>
+                    <h1 class="font-bold text-slate-900 text-base leading-tight">AI 트립 메이트</h1>
+                    <p class="text-xs text-slate-500">나만의 맞춤 여행 일정표</p>
+                </div>
+            </div>
+            <button id="resetBtn" onclick="resetForm()" class="hidden text-xs text-indigo-600 font-medium px-3 py-1.5 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors">
+                다시 만들기
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="flex-1 max-w-md w-full mx-auto p-4 pb-20">
+        
+        <!-- Input Form Section -->
+        <section id="formSection" class="bg-white rounded-2xl p-5 shadow-xs border border-slate-100 transition-all duration-300">
+            <div class="mb-5">
+                <h2 class="text-lg font-bold text-slate-900">어디로 떠나시나요?</h2>
+                <p class="text-xs text-slate-500 mt-0.5">정보를 입력해주시면 AI가 완벽한 일정을 짜드립니다.</p>
+            </div>
+
+            <form id="travelForm" onsubmit="handleGenerate(event)" class="space-y-4">
+                <!-- Destination -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">여행지</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">📍</span>
+                        <input type="text" id="destination" required placeholder="예: 제주도, 도쿄, 파리" 
+                            class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all">
+                    </div>
+                </div>
+
+                <!-- Duration & Companion (Grid 2 cols) -->
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1.5">여행 기간</label>
+                        <select id="duration" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all">
+                            <option value="1박 2일">1박 2일</option>
+                            <option value="2박 3일" selected>2박 3일</option>
+                            <option value="3박 4일">3박 4일</option>
+                            <option value="4박 5일">4박 5일</option>
+                            <option value="일주일 이상">일주일 이상</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1.5">누와 함께?</label>
+                        <select id="companion" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all">
+                            <option value="혼자서">혼자서 🙋‍♂️</option>
+                            <option value="연인과" selected>연인과 💕</option>
+                            <option value="친구와">친구와 🧑‍🤝‍🧑</option>
+                            <option value="가족과">가족과 👨‍👩‍👦‍👦</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Interests -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-2">관심사 (중복 선택)</label>
+                    <div class="flex flex-wrap gap-2" id="interestContainer">
+                        <label class="cursor-pointer">
+                            <input type="checkbox" name="interest" value="맛집탐방" checked class="peer sr-only">
+                            <span class="inline-block px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-100 text-slate-600 peer-checked:bg-indigo-600 peer-checked:text-white transition-all">
+                                🍳 맛집탐방
+                            </span>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="checkbox" name="interest" value="사진명소" checked class="peer sr-only">
+                            <span class="inline-block px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-100 text-slate-600 peer-checked:bg-indigo-600 peer-checked:text-white transition-all">
+                                📸 사진명소
+                            </span>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="checkbox" name="interest" value="휴식/힐링" class="peer sr-only">
+                            <span class="inline-block px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-100 text-slate-600 peer-checked:bg-indigo-600 peer-checked:text-white transition-all">
+                                🌿 휴식/힐링
+                            </span>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="checkbox" name="interest" value="액티비티" class="peer sr-only">
+                            <span class="inline-block px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-100 text-slate-600 peer-checked:bg-indigo-600 peer-checked:text-white transition-all">
+                                🏄‍♂️ 액티비티
+                            </span>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="checkbox" name="interest" value="쇼핑" class="peer sr-only">
+                            <span class="inline-block px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-100 text-slate-600 peer-checked:bg-indigo-600 peer-checked:text-white transition-all">
+                                🛍️ 쇼핑
+                            </span>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="checkbox" name="interest" value="역사/문화" class="peer sr-only">
+                            <span class="inline-block px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-100 text-slate-600 peer-checked:bg-indigo-600 peer-checked:text-white transition-all">
+                                🏛️ 역사/문화
+                            </span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="w-full mt-2 py-3.5 bg-indigo-600 hover:bg-indigo-700 active:scale-[0.98] text-white font-semibold rounded-xl shadow-md shadow-indigo-200 transition-all flex items-center justify-center space-x-2">
+                    <span>✨ AI 일정 생성하기</span>
+                </button>
+            </form>
+        </section>
+
+        <!-- Loading State (Hidden by default) -->
+        <section id="loadingSection" class="hidden py-16 flex flex-col items-center justify-center space-y-4">
+            <div class="relative w-16 h-16">
+                <div class="absolute inset-0 border-4 border-indigo-100 rounded-full"></div>
+                <div class="absolute inset-0 border-4 border-indigo-600 rounded-full border-t-transparent animate-spin"></div>
+            </div>
+            <div class="text-center">
+                <h3 class="font-bold text-slate-800 text-base">AI가 일정을 짜고 있어요</h3>
+                <p class="text-xs text-slate-500 mt-1" id="loadingText">최적의 동선과 맛집을 분석 중입니다...</p>
+            </div>
+        </section>
+
+        <!-- Result Section (Hidden by default) -->
+        <section id="resultSection" class="hidden space-y-4">
+            <!-- Trip Overview Summary Card -->
+            <div class="bg-gradient-to-br from-indigo-900 to-violet-800 text-white rounded-2xl p-5 shadow-lg relative overflow-hidden">
+                <div class="absolute right-[-20px] bottom-[-20px] text-white/10 text-8xl font-black select-none pointer-events-none">✈️</div>
+                <div class="flex items-center justify-between mb-2">
+                    <span id="badgeDestination" class="px-2.5 py-1 bg-white/20 backdrop-blur-md rounded-full text-xs font-medium">제주도</span>
+                    <span id="badgeCompanion" class="text-xs text-indigo-200">연인과 함께</span>
+                </div>
+                <h2 id="summaryTitle" class="text-xl font-bold tracking-tight">제주 로맨틱 힐링 여행</h2>
+                <div class="flex items-center space-x-3 mt-3 text-xs text-indigo-100">
+                    <span id="summaryDuration">📅 2박 3일</span>
+                    <span>•</span>
+                    <span id="summaryInterests">🍳 맛집탐방, 📸 사진명소</span>
+                </div>
+            </div>
+
+            <!-- Day Navigation Tabs -->
+            <div class="flex overflow-x-auto space-x-2 py-1 scrollbar-none" id="dayTabs">
+                <!-- Tabs will be injected dynamically -->
+            </div>
+
+            <!-- Day Cards Container -->
+            <div id="itineraryContainer" class="space-y-4">
+                <!-- Day cards injected here -->
+            </div>
+
+            <!-- Bottom Actions -->
+            <div class="pt-4 flex gap-3">
+                <button onclick="sharePlan()" class="flex-1 py-3 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold rounded-xl text-sm transition-all shadow-xs flex items-center justify-center space-x-1.5">
+                    <span>🔗 일정 공유</span>
+                </button>
+                <button onclick="resetForm()" class="flex-1 py-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 font-semibold rounded-xl text-sm transition-all flex items-center justify-center space-x-1.5">
+                    <span>🔄 새로 만들기</span>
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Custom Toast / Modal (No alert used) -->
+    <div id="toast" class="fixed bottom-5 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-xs px-4 py-2.5 rounded-xl shadow-xl transition-all duration-300 opacity-0 pointer-events-none z-50">
+        클립보드에 복사되었습니다!
+    </div>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // Mock default data generator depending on user input
+        function getMockItinerary(destination, duration, companion, interests) {
+            const dayCount = duration.includes('1박') ? 2 : duration.includes('2박') ? 3 : duration.includes('3박') ? 4 : 3;
+            
+            let days = [];
+            for (let i = 1; i <= dayCount; i++) {
+                days.push({
+                    day: i,
+                    title: i === 1 ? `${destination} 도착 및 첫째 날 설레는 시작` : i === dayCount ? `알찬 마무리와 ${destination} 기념 쇼핑` : `${destination} 구석구석 탐방과 로컬 체험`,
+                    activities: [
+                        { time: "09:30", title: "상쾌한 아침 시작 & 현지 맛집 조식", desc: "현지인들이 추천하는 로컬 브런치 및 아침 식사로 에너지를 충전합니다." },
+                        { time: "11:30", title: `${destination} 대표 관광지 및 인생샷 명소`, desc: `${interests.join(', ')}에 걸맞은 아름다운 자연경관과 랜드마크 방문.` },
+                        { time: "14:00", title: "분위기 좋은 감성 카페 휴식", desc: "여행의 피로를 풀어줄 시그니처 음료와 디저트 타임." },
+                        { time: "17:30", title: "선셋 드라이브 또는 산책로 코스", desc: "해 질 무렵 노을이 아름다운 스팟에서 산책 및 기념 사진 촬영." },
+                        { time: "20:00", title: "저녁 만찬 & 로컬 특선 요리", desc: "여행의 밤을 빛내줄 맛있는 저녁 식사와 분위기 있는 장소." }
+                    ],
+                    tip: `${companion} 함께할 때는 이동 동선을 짧게 잡고 여유를 두는 것이 좋습니다.`
+                });
+            }
+            return {
+                destination,
+                duration,
+                companion,
+                interests,
+                title: `${destination} ${duration} 맞춤 추천 일정`,
+                days
+            };
+        }
+
+        async function handleGenerate(e) {
+            e.preventDefault();
+            
+            const destination = document.getElementById('destination').value.trim();
+            const duration = document.getElementById('duration').value;
+            const companion = document.getElementById('companion').value;
+            const checkedInterests = Array.from(document.querySelectorAll('input[name="interest"]:checked')).map(el => el.value);
+
+            if (!destination) {
+                showToast('여행지를 입력해주세요!');
+                return;
+            }
+
+            // Hide form, show loading
+            document.getElementById('formSection').classList.add('hidden');
+            document.getElementById('loadingSection').classList.remove('hidden');
+
+            let itineraryData;
+
+            try {
+                // Attempt to fetch from Vercel function /api/plan
+                const response = await fetch('/api/plan', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ destination, duration, companion, interests: checkedInterests })
+                });
+
+                if (!response.ok) {
+                    throw new Error('API not available');
+                }
+                itineraryData = await response.json();
+            } catch (error) {
+                // Fallback to mock data since /api/plan is not deployed or unavailable yet
+                await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate loading delay
+                itineraryData = getMockItinerary(destination, duration, companion, checkedInterests);
+            }
+
+            // Hide loading, show result
+            document.getElementById('loadingSection').classList.add('hidden');
+            document.getElementById('resultSection').classList.remove('hidden');
+            document.getElementById('resetBtn').classList.remove('hidden');
+
+            renderItinerary(itineraryData);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function renderItinerary(data) {
+            document.getElementById('badgeDestination').innerText = data.destination;
+            document.getElementById('badgeCompanion').innerText = `${data.companion} 함께`;
+            document.getElementById('summaryTitle').innerText = data.title;
+            document.getElementById('summaryDuration').innerText = `📅 ${data.duration}`;
+            document.getElementById('summaryInterests').innerText = `🍳 ${data.interests.join(', ')}`;
+
+            const dayTabs = document.getElementById('dayTabs');
+            const itineraryContainer = document.getElementById('itineraryContainer');
+            
+            dayTabs.innerHTML = '';
+            itineraryContainer.innerHTML = '';
+
+            data.days.forEach((dayObj, index) => {
+                // Render Tab button
+                const tab = document.createElement('button');
+                tab.className = `px-4 py-2 text-xs font-semibold rounded-xl whitespace-nowrap transition-all ${index === 0 ? 'bg-indigo-600 text-white shadow-sm' : 'bg-white text-slate-600 border border-slate-200'}`;
+                tab.innerText = `Day ${dayObj.day}`;
+                tab.onclick = () => switchDay(index);
+                dayTabs.appendChild(tab);
+
+                // Render Day Card
+                const card = document.createElement('div');
+                card.className = `space-y-4 day-card ${index === 0 ? '' : 'hidden'}`;
+                card.id = `day-card-${index}`;
+
+                let activitiesHtml = dayObj.activities.map(act => `
+                    <div class="relative pl-6 pb-4 border-l-2 border-indigo-100 last:border-0 last:pb-0">
+                        <div class="absolute -left-[7px] top-0 w-3 h-3 rounded-full bg-indigo-600 border-2 border-white shadow-xs"></div>
+                        <span class="text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md">${act.time}</span>
+                        <h4 class="font-bold text-slate-800 text-sm mt-1">${act.title}</h4>
+                        <p class="text-xs text-slate-500 mt-0.5 leading-relaxed">${act.desc}</p>
+                    </div>
+                `).join('');
+
+                card.innerHTML = `
+                    <div class="bg-white rounded-2xl p-5 border border-slate-100 shadow-xs space-y-4">
+                        <div class="border-b border-slate-100 pb-3">
+                            <span class="text-xs font-bold text-indigo-600">DAY ${dayObj.day}</span>
+                            <h3 class="font-bold text-slate-900 text-base mt-0.5">${dayObj.title}</h3>
+                        </div>
+                        <div class="space-y-2 pt-1">
+                            ${activitiesHtml}
+                        </div>
+                        <div class="bg-amber-50 border border-amber-100 rounded-xl p-3 flex items-start space-x-2.5 mt-4">
+                            <span class="text-base">💡</span>
+                            <div>
+                                <h5 class="text-xs font-bold text-amber-900">AI 여행 팁</h5>
+                                <p class="text-xs text-amber-800 mt-0.5 leading-relaxed">${dayObj.tip}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                itineraryContainer.appendChild(card);
+            });
+        }
+
+        function switchDay(selectedIndex) {
+            const tabs = document.querySelectorAll('#dayTabs button');
+            tabs.forEach((tab, idx) => {
+                if (idx === selectedIndex) {
+                    tab.className = 'px-4 py-2 text-xs font-semibold rounded-xl whitespace-nowrap transition-all bg-indigo-600 text-white shadow-sm';
+                } else {
+                    tab.className = 'px-4 py-2 text-xs font-semibold rounded-xl whitespace-nowrap transition-all bg-white text-slate-600 border border-slate-200';
+                }
+            });
+
+            const cards = document.querySelectorAll('.day-card');
+            cards.forEach((card, idx) => {
+                if (idx === selectedIndex) {
+                    card.classList.remove('hidden');
+                } else {
+                    card.classList.add('hidden');
+                }
+            });
+        }
+
+        function resetForm() {
+            document.getElementById('resultSection').classList.add('hidden');
+            document.getElementById('formSection').classList.remove('hidden');
+            document.getElementById('resetBtn').classList.add('hidden');
+            document.getElementById('travelForm').reset();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function sharePlan() {
+            const text = document.getElementById('summaryTitle').innerText;
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(window.location.href).then(() => {
+                    showToast('일정 링크가 복사되었습니다!');
+                }).catch(() => {
+                    fallbackCopy(window.location.href);
+                });
+            } else {
+                fallbackCopy(window.location.href);
+            }
+        }
+
+        function fallbackCopy(text) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                showToast('일정 링크가 복사되었습니다!');
+            } catch (err) {
+                showToast('복사에 실패했습니다.');
+            }
+            document.body.removeChild(textArea);
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.innerText = message;
+            toast.classList.remove('opacity-0', 'pointer-events-none');
+            toast.classList.add('opacity-100');
+            setTimeout(() => {
+                toast.classList.remove('opacity-100');
+                toast.classList.add('opacity-0', 'pointer-events-none');
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
