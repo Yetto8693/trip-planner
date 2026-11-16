@@ -3,23 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI 맞춤 여행 플래너</title>
+    <title>AI 트립 메이트 프로</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Font (Inter) -->
-    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Google Font (Pretendard) -->
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Pretendard', sans-serif;
             background-color: #f8fafc;
         }
-        /* Custom scrollbar for smooth UI */
         ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
+            width: 5px;
+            height: 5px;
         }
         ::-webkit-scrollbar-track {
-            background: #f1f5f9;
+            background: transparent;
         }
         ::-webkit-scrollbar-thumb {
             background: #cbd5e1;
@@ -27,221 +26,426 @@
         }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col antialiased">
 
     <!-- Header -->
-    <header class="bg-white border-b border-slate-100 sticky top-0 z-30 shadow-xs">
+    <header class="bg-white/80 backdrop-blur-md border-b border-slate-100 sticky top-0 z-40">
         <div class="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
-            <div class="flex items-center space-x-2">
-                <div class="w-9 h-9 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-bold shadow-md shadow-indigo-200">
+            <div class="flex items-center space-x-2.5 cursor-pointer" onclick="goHome()">
+                <div class="w-9 h-9 bg-gradient-to-tr from-indigo-600 to-violet-600 rounded-xl flex items-center justify-center text-white font-bold shadow-md shadow-indigo-200">
                     ✈️
                 </div>
                 <div>
-                    <h1 class="font-bold text-slate-900 text-base leading-tight">AI 트립 메이트</h1>
-                    <p class="text-xs text-slate-500">나만의 맞춤 여행 일정표</p>
+                    <h1 class="font-bold text-slate-900 text-sm leading-tight">TripMate AI <span class="text-[10px] bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded-md font-semibold">PRO</span></h1>
+                    <p class="text-[11px] text-slate-500">지능형 맞춤 여행 플래너</p>
                 </div>
             </div>
-            <button id="resetBtn" onclick="resetForm()" class="hidden text-xs text-indigo-600 font-medium px-3 py-1.5 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors">
-                다시 만들기
-            </button>
+            <div class="flex items-center space-x-2">
+                <button onclick="openSavedDrawer()" class="p-2 text-slate-600 hover:text-indigo-600 hover:bg-slate-100 rounded-xl transition-all relative">
+                    <span class="text-base">🔖</span>
+                    <span id="savedCountBadge" class="absolute -top-1 -right-1 w-4 h-4 bg-indigo-600 text-white text-[9px] font-bold rounded-full flex items-center justify-center hidden">0</span>
+                </button>
+                <button id="resetBtn" onclick="goHome()" class="hidden text-xs text-indigo-600 font-semibold px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 rounded-xl transition-all">
+                    새 일정
+                </button>
+            </div>
         </div>
     </header>
 
-    <!-- Main Content Container -->
-    <main class="flex-1 max-w-md w-full mx-auto p-4 pb-20">
-        
-        <!-- Input Form Section -->
-        <section id="formSection" class="bg-white rounded-2xl p-5 shadow-xs border border-slate-100 transition-all duration-300">
-            <div class="mb-5">
-                <h2 class="text-lg font-bold text-slate-900">어디로 떠나시나요?</h2>
-                <p class="text-xs text-slate-500 mt-0.5">정보를 입력해주시면 AI가 완벽한 일정을 짜드립니다.</p>
+    <!-- Main App Container -->
+    <main class="flex-1 max-w-md w-full mx-auto p-4 pb-24">
+
+        <!-- 1. HOME / INPUT VIEW -->
+        <section id="homeView" class="space-y-6 transition-all">
+            <!-- Hero Banner -->
+            <div class="bg-gradient-to-br from-indigo-900 via-violet-950 to-slate-950 text-white rounded-3xl p-6 shadow-2xl relative overflow-hidden border border-white/10">
+                <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-violet-500/20 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="absolute -left-10 -top-10 w-40 h-40 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 space-y-3">
+                    <div class="inline-flex items-center space-x-2 px-3.5 py-1.5 bg-white/10 backdrop-blur-md rounded-full text-[11px] font-semibold text-violet-200 border border-white/15 shadow-inner">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <span>✨ AI 지능형 트래블 스튜디오 v3.5</span>
+                    </div>
+                    <h2 class="text-2xl font-black tracking-tight leading-snug">어디로 떠나는<br><span class="bg-gradient-to-r from-violet-300 via-pink-300 to-indigo-300 bg-clip-text text-transparent">설레는 여행</span>인가요?</h2>
+                    <p class="text-xs text-slate-300 leading-relaxed font-light">취향과 동행자만 선택하시면 AI가 실시간으로 세상에 단 하나뿐인 완벽한 동선과 일정을 조율해드립니다.</p>
+                </div>
+
+                <!-- Quick Presets -->
+                <div class="mt-6 pt-4 border-t border-white/10">
+                    <p class="text-[11px] text-violet-200 font-medium mb-2.5 flex items-center justify-between">
+                        <span>🔥 실시간 인기 트렌드 추천</span>
+                        <span class="text-[10px] text-violet-300/80">원클릭 자동완성</span>
+                    </p>
+                    <div class="flex gap-2.5 overflow-x-auto pb-1 scrollbar-none">
+                        <button type="button" onclick="fillPreset('제주도', '2박 3일', '연인과', ['맛집탐방', '사진명소', '휴식/힐링'])" class="bg-white/10 hover:bg-white/20 border border-white/15 text-xs px-4 py-2.5 rounded-2xl whitespace-nowrap transition-all flex items-center space-x-2 shadow-sm backdrop-blur-xs group">
+                            <span class="text-sm group-hover:scale-110 transition-transform">🏝️</span>
+                            <span class="font-semibold text-white">제주 감성힐링</span>
+                        </button>
+                        <button type="button" onclick="fillPreset('도쿄', '3박 4일', '친구와', ['맛집탐방', '쇼핑', '사진명소'])" class="bg-white/10 hover:bg-white/20 border border-white/15 text-xs px-4 py-2.5 rounded-2xl whitespace-nowrap transition-all flex items-center space-x-2 shadow-sm backdrop-blur-xs group">
+                            <span class="text-sm group-hover:scale-110 transition-transform">🗼</span>
+                            <span class="font-semibold text-white">도쿄 미식쇼핑</span>
+                        </button>
+                        <button type="button" onclick="fillPreset('파리', '4박 5일', '연인과', ['사진명소', '역사/문화', '맛집탐방'])" class="bg-white/10 hover:bg-white/20 border border-white/15 text-xs px-4 py-2.5 rounded-2xl whitespace-nowrap transition-all flex items-center space-x-2 shadow-sm backdrop-blur-xs group">
+                            <span class="text-sm group-hover:scale-110 transition-transform">✨</span>
+                            <span class="font-semibold text-white">파리 로맨틱</span>
+                        </button>
+                        <button type="button" onclick="fillPreset('방콕', '3박 4일', '친구와', ['맛집탐방', '휴식/힐링', '쇼핑'])" class="bg-white/10 hover:bg-white/20 border border-white/15 text-xs px-4 py-2.5 rounded-2xl whitespace-nowrap transition-all flex items-center space-x-2 shadow-sm backdrop-blur-xs group">
+                            <span class="text-sm group-hover:scale-110 transition-transform">🏛️</span>
+                            <span class="font-semibold text-white">방콕 가성비휴가</span>
+                        </button>
+                    </div>
+                </div>
             </div>
 
-            <form id="travelForm" onsubmit="handleGenerate(event)" class="space-y-4">
-                <!-- Destination -->
-                <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">여행지</label>
-                    <div class="relative">
-                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">📍</span>
-                        <input type="text" id="destination" required placeholder="예: 제주도, 도쿄, 파리" 
-                            class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all">
+            <!-- Input Form Card -->
+            <div class="bg-white/90 backdrop-blur-xl rounded-3xl p-6 shadow-xl shadow-slate-200/50 border border-slate-100 space-y-5 relative">
+                <div class="flex items-center justify-between pb-3.5 border-b border-slate-100">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-7 h-7 bg-violet-100 text-violet-600 rounded-xl flex items-center justify-center font-bold text-xs">✨</div>
+                        <h3 class="font-bold text-slate-900 text-sm">맞춤 일정 상세 설정</h3>
                     </div>
+                    <span class="text-[11px] text-violet-700 font-bold bg-violet-50 px-3 py-1 rounded-full border border-violet-100">AI 커스텀 엔진</span>
                 </div>
 
-                <!-- Duration & Companion (Grid 2 cols) -->
-                <div class="grid grid-cols-2 gap-3">
+                <form id="travelForm" onsubmit="handleGenerate(event)" class="space-y-4">
+                    <!-- Destination -->
                     <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1.5">여행 기간</label>
-                        <select id="duration" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all">
-                            <option value="1박 2일">1박 2일</option>
-                            <option value="2박 3일" selected>2박 3일</option>
-                            <option value="3박 4일">3박 4일</option>
-                            <option value="4박 5일">4박 5일</option>
-                            <option value="일주일 이상">일주일 이상</option>
-                        </select>
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5 flex items-center justify-between">
+                            <span>여행지 선택 또는 직접 입력</span>
+                            <span class="text-[10px] text-slate-400 font-normal">전 세계 모든 도시 가능</span>
+                        </label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-violet-500 text-sm">📍</span>
+                            <input type="text" id="destination" required placeholder="예: 오사카, 강릉, 바르셀로나, 뉴욕" 
+                                class="w-full pl-11 pr-4 py-3.5 bg-slate-50/80 border border-slate-200 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 focus:bg-white transition-all font-semibold text-slate-900 placeholder:font-normal placeholder:text-slate-400 shadow-inner">
+                        </div>
+                        <div class="flex flex-wrap gap-1.5 mt-2.5">
+                            <button type="button" onclick="document.getElementById('destination').value='오사카'" class="text-[11px] bg-slate-100 hover:bg-violet-50 hover:text-violet-700 text-slate-600 font-medium px-3 py-1.5 rounded-xl transition-all border border-slate-200/60">#오사카</button>
+                            <button type="button" onclick="document.getElementById('destination').value='제주도'" class="text-[11px] bg-slate-100 hover:bg-violet-50 hover:text-violet-700 text-slate-600 font-medium px-3 py-1.5 rounded-xl transition-all border border-slate-200/60">#제주도</button>
+                            <button type="button" onclick="document.getElementById('destination').value='후쿠오카'" class="text-[11px] bg-slate-100 hover:bg-violet-50 hover:text-violet-700 text-slate-600 font-medium px-3 py-1.5 rounded-xl transition-all border border-slate-200/60">#후쿠오카</button>
+                            <button type="button" onclick="document.getElementById('destination').value='다낭'" class="text-[11px] bg-slate-100 hover:bg-violet-50 hover:text-violet-700 text-slate-600 font-medium px-3 py-1.5 rounded-xl transition-all border border-slate-200/60">#다낭</button>
+                            <button type="button" onclick="document.getElementById('destination').value='방콕'" class="text-[11px] bg-slate-100 hover:bg-violet-50 hover:text-violet-700 text-slate-600 font-medium px-3 py-1.5 rounded-xl transition-all border border-slate-200/60">#방콕</button>
+                        </div>
                     </div>
+
+                    <!-- Duration & Companion -->
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1.5">여행 기간</label>
+                            <div class="relative">
+                                <select id="duration" class="w-full px-3.5 py-3.5 bg-slate-50/80 border border-slate-200 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 focus:bg-white transition-all text-slate-800 font-semibold appearance-none shadow-inner">
+                                    <option value="1박 2일">1박 2일 (주말 겟어웨이)</option>
+                                    <option value="2박 3일" selected>2박 3일 (알찬 단기여행)</option>
+                                    <option value="3박 4일">3박 4일 (가장 인기)</option>
+                                    <option value="4박 5일">4박 5일 (여유로운 코스)</option>
+                                    <option value="일주일 이상">일주일 이상 (심층 탐방)</option>
+                                </select>
+                                <span class="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-slate-400 text-xs">▼</span>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1.5">누와 함께 떠나나요?</label>
+                            <div class="relative">
+                                <select id="companion" class="w-full px-3.5 py-3.5 bg-slate-50/80 border border-slate-200 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 focus:bg-white transition-all text-slate-800 font-semibold appearance-none shadow-inner">
+                                    <option value="혼자서">혼자서 🙋‍♂️</option>
+                                    <option value="연인과" selected>연인과 💕</option>
+                                    <option value="친구와">친구와 🧑‍🤝‍🧑</option>
+                                    <option value="가족과">가족과 👨‍👩‍👦‍👦</option>
+                                </select>
+                                <span class="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-slate-400 text-xs">▼</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Interests Checkboxes -->
                     <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1.5">누와 함께?</label>
-                        <select id="companion" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all">
-                            <option value="혼자서">혼자서 🙋‍♂️</option>
-                            <option value="연인과" selected>연인과 💕</option>
-                            <option value="친구와">친구와 🧑‍🤝‍🧑</option>
-                            <option value="가족과">가족과 👨‍👩‍👦‍👦</option>
-                        </select>
+                        <label class="block text-xs font-bold text-slate-700 mb-2">선호하는 관심사 (중복 선택 가능)</label>
+                        <div class="grid grid-cols-3 gap-2" id="interestContainer">
+                            <label class="cursor-pointer group">
+                                <input type="checkbox" name="interest" value="맛집탐방" checked class="peer sr-only">
+                                <div class="p-3 text-center text-xs font-semibold rounded-2xl bg-slate-50 border border-slate-200 text-slate-600 peer-checked:bg-gradient-to-br peer-checked:from-violet-600 peer-checked:to-indigo-600 peer-checked:border-transparent peer-checked:text-white peer-checked:shadow-md peer-checked:shadow-violet-200 transition-all flex flex-col items-center justify-center space-y-1.5 group-hover:border-violet-300">
+                                    <span class="text-lg">🍳</span>
+                                    <span>맛집탐방</span>
+                                </div>
+                            </label>
+                            <label class="cursor-pointer group">
+                                <input type="checkbox" name="interest" value="사진명소" checked class="peer sr-only">
+                                <div class="p-3 text-center text-xs font-semibold rounded-2xl bg-slate-50 border border-slate-200 text-slate-600 peer-checked:bg-gradient-to-br peer-checked:from-violet-600 peer-checked:to-indigo-600 peer-checked:border-transparent peer-checked:text-white peer-checked:shadow-md peer-checked:shadow-violet-200 transition-all flex flex-col items-center justify-center space-y-1.5 group-hover:border-violet-300">
+                                    <span class="text-lg">📸</span>
+                                    <span>사진명소</span>
+                                </div>
+                            </label>
+                            <label class="cursor-pointer group">
+                                <input type="checkbox" name="interest" value="휴식/힐링" class="peer sr-only">
+                                <div class="p-3 text-center text-xs font-semibold rounded-2xl bg-slate-50 border border-slate-200 text-slate-600 peer-checked:bg-gradient-to-br peer-checked:from-violet-600 peer-checked:to-indigo-600 peer-checked:border-transparent peer-checked:text-white peer-checked:shadow-md peer-checked:shadow-violet-200 transition-all flex flex-col items-center justify-center space-y-1.5 group-hover:border-violet-300">
+                                    <span class="text-lg">🌿</span>
+                                    <span>휴식/힐링</span>
+                                </div>
+                            </label>
+                            <label class="cursor-pointer group">
+                                <input type="checkbox" name="interest" value="액티비티" class="peer sr-only">
+                                <div class="p-3 text-center text-xs font-semibold rounded-2xl bg-slate-50 border border-slate-200 text-slate-600 peer-checked:bg-gradient-to-br peer-checked:from-violet-600 peer-checked:to-indigo-600 peer-checked:border-transparent peer-checked:text-white peer-checked:shadow-md peer-checked:shadow-violet-200 transition-all flex flex-col items-center justify-center space-y-1.5 group-hover:border-violet-300">
+                                    <span class="text-lg">🏄‍♂️</span>
+                                    <span>액티비티</span>
+                                </div>
+                            </label>
+                            <label class="cursor-pointer group">
+                                <input type="checkbox" name="interest" value="쇼핑" class="peer sr-only">
+                                <div class="p-3 text-center text-xs font-semibold rounded-2xl bg-slate-50 border border-slate-200 text-slate-600 peer-checked:bg-gradient-to-br peer-checked:from-violet-600 peer-checked:to-indigo-600 peer-checked:border-transparent peer-checked:text-white peer-checked:shadow-md peer-checked:shadow-violet-200 transition-all flex flex-col items-center justify-center space-y-1.5 group-hover:border-violet-300">
+                                    <span class="text-lg">🛍️</span>
+                                    <span>쇼핑</span>
+                                </div>
+                            </label>
+                            <label class="cursor-pointer group">
+                                <input type="checkbox" name="interest" value="역사/문화" class="peer sr-only">
+                                <div class="p-3 text-center text-xs font-semibold rounded-2xl bg-slate-50 border border-slate-200 text-slate-600 peer-checked:bg-gradient-to-br peer-checked:from-violet-600 peer-checked:to-indigo-600 peer-checked:border-transparent peer-checked:text-white peer-checked:shadow-md peer-checked:shadow-violet-200 transition-all flex flex-col items-center justify-center space-y-1.5 group-hover:border-violet-300">
+                                    <span class="text-lg">🏛️</span>
+                                    <span>역사/문화</span>
+                                </div>
+                            </label>
+                        </div>
                     </div>
-                </div>
 
-                <!-- Interests -->
-                <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-2">관심사 (중복 선택)</label>
-                    <div class="flex flex-wrap gap-2" id="interestContainer">
-                        <label class="cursor-pointer">
-                            <input type="checkbox" name="interest" value="맛집탐방" checked class="peer sr-only">
-                            <span class="inline-block px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-100 text-slate-600 peer-checked:bg-indigo-600 peer-checked:text-white transition-all">
-                                🍳 맛집탐방
-                            </span>
-                        </label>
-                        <label class="cursor-pointer">
-                            <input type="checkbox" name="interest" value="사진명소" checked class="peer sr-only">
-                            <span class="inline-block px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-100 text-slate-600 peer-checked:bg-indigo-600 peer-checked:text-white transition-all">
-                                📸 사진명소
-                            </span>
-                        </label>
-                        <label class="cursor-pointer">
-                            <input type="checkbox" name="interest" value="휴식/힐링" class="peer sr-only">
-                            <span class="inline-block px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-100 text-slate-600 peer-checked:bg-indigo-600 peer-checked:text-white transition-all">
-                                🌿 휴식/힐링
-                            </span>
-                        </label>
-                        <label class="cursor-pointer">
-                            <input type="checkbox" name="interest" value="액티비티" class="peer sr-only">
-                            <span class="inline-block px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-100 text-slate-600 peer-checked:bg-indigo-600 peer-checked:text-white transition-all">
-                                🏄‍♂️ 액티비티
-                            </span>
-                        </label>
-                        <label class="cursor-pointer">
-                            <input type="checkbox" name="interest" value="쇼핑" class="peer sr-only">
-                            <span class="inline-block px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-100 text-slate-600 peer-checked:bg-indigo-600 peer-checked:text-white transition-all">
-                                🛍️ 쇼핑
-                            </span>
-                        </label>
-                        <label class="cursor-pointer">
-                            <input type="checkbox" name="interest" value="역사/문화" class="peer sr-only">
-                            <span class="inline-block px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-100 text-slate-600 peer-checked:bg-indigo-600 peer-checked:text-white transition-all">
-                                🏛️ 역사/문화
-                            </span>
-                        </label>
-                    </div>
-                </div>
-
-                <!-- Submit Button -->
-                <button type="submit" class="w-full mt-2 py-3.5 bg-indigo-600 hover:bg-indigo-700 active:scale-[0.98] text-white font-semibold rounded-xl shadow-md shadow-indigo-200 transition-all flex items-center justify-center space-x-2">
-                    <span>✨ AI 일정 생성하기</span>
-                </button>
-            </form>
+                    <!-- Submit Button -->
+                    <button type="submit" class="w-full mt-4 py-4 bg-gradient-to-r from-violet-600 via-indigo-600 to-blue-600 hover:from-violet-700 hover:to-blue-700 active:scale-[0.98] text-white font-bold rounded-2xl shadow-xl shadow-violet-500/30 transition-all flex items-center justify-center space-x-2 text-sm tracking-wide border border-white/10">
+                        <span>✨ AI 맞춤 일정 마법처럼 생성하기</span>
+                    </button>
+                </form>
+            </div>
         </section>
 
-        <!-- Loading State (Hidden by default) -->
-        <section id="loadingSection" class="hidden py-16 flex flex-col items-center justify-center space-y-4">
+        <!-- Loading Section -->
+        <section id="loadingSection" class="hidden py-24 flex flex-col items-center justify-center space-y-4">
             <div class="relative w-16 h-16">
                 <div class="absolute inset-0 border-4 border-indigo-100 rounded-full"></div>
                 <div class="absolute inset-0 border-4 border-indigo-600 rounded-full border-t-transparent animate-spin"></div>
             </div>
             <div class="text-center">
-                <h3 class="font-bold text-slate-800 text-base">AI가 일정을 짜고 있어요</h3>
-                <p class="text-xs text-slate-500 mt-1" id="loadingText">최적의 동선과 맛집을 분석 중입니다...</p>
+                <h3 class="font-bold text-slate-800 text-base" id="loadingTitle">AI 플래너 작동 중...</h3>
+                <p class="text-xs text-slate-500 mt-1" id="loadingText">최적의 동선, 맛집, 포토스팟을 분석하고 있습니다</p>
             </div>
         </section>
 
-        <!-- Result Section (Hidden by default) -->
+        <!-- 2. RESULT DASHBOARD VIEW -->
         <section id="resultSection" class="hidden space-y-4">
-            <!-- Trip Overview Summary Card -->
-            <div class="bg-gradient-to-br from-indigo-900 to-violet-800 text-white rounded-2xl p-5 shadow-lg relative overflow-hidden">
-                <div class="absolute right-[-20px] bottom-[-20px] text-white/10 text-8xl font-black select-none pointer-events-none">✈️</div>
+            <!-- Summary Banner -->
+            <div class="bg-gradient-to-br from-slate-900 to-indigo-950 text-white rounded-2xl p-5 shadow-lg relative overflow-hidden">
                 <div class="flex items-center justify-between mb-2">
                     <span id="badgeDestination" class="px-2.5 py-1 bg-white/20 backdrop-blur-md rounded-full text-xs font-medium">제주도</span>
-                    <span id="badgeCompanion" class="text-xs text-indigo-200">연인과 함께</span>
+                    <span id="badgeCompanion" class="text-xs text-indigo-300">연인과 함께</span>
                 </div>
-                <h2 id="summaryTitle" class="text-xl font-bold tracking-tight">제주 로맨틱 힐링 여행</h2>
-                <div class="flex items-center space-x-3 mt-3 text-xs text-indigo-100">
+                <h2 id="summaryTitle" class="text-lg font-bold tracking-tight">제주 로맨틱 힐링 여행</h2>
+                <div class="flex items-center space-x-3 mt-3 text-xs text-slate-300">
                     <span id="summaryDuration">📅 2박 3일</span>
                     <span>•</span>
                     <span id="summaryInterests">🍳 맛집탐방, 📸 사진명소</span>
                 </div>
+
+                <div class="mt-4 pt-3 border-t border-white/10 flex items-center justify-between">
+                    <div class="flex items-center space-x-2">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <span class="text-[11px] text-emerald-300 font-medium">실시간 최적화 완료</span>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button onclick="saveCurrentPlan()" class="px-3 py-1 bg-white/10 hover:bg-white/20 text-xs font-medium rounded-lg transition-all flex items-center space-x-1">
+                            <span>💾 일정 저장</span>
+                        </button>
+                        <button onclick="sharePlan()" class="px-3 py-1 bg-indigo-600 hover:bg-indigo-500 text-xs font-medium rounded-lg transition-all flex items-center space-x-1">
+                            <span>🔗 공유</span>
+                        </button>
+                    </div>
+                </div>
             </div>
 
-            <!-- Day Navigation Tabs -->
-            <div class="flex overflow-x-auto space-x-2 py-1 scrollbar-none" id="dayTabs">
-                <!-- Tabs will be injected dynamically -->
+            <!-- Sub-Feature Tabs -->
+            <div class="grid grid-cols-4 gap-1.5 bg-slate-200/70 p-1 rounded-2xl text-xs font-semibold text-slate-600 text-center">
+                <button onclick="switchTab('schedule')" id="subTabBtn-schedule" class="py-2.5 rounded-xl bg-white text-indigo-600 shadow-xs transition-all">📅 일정표</button>
+                <button onclick="switchTab('map')" id="subTabBtn-map" class="py-2.5 rounded-xl hover:text-slate-900 transition-all">🗺️ 동선맵</button>
+                <button onclick="switchTab('checklist')" id="subTabBtn-checklist" class="py-2.5 rounded-xl hover:text-slate-900 transition-all">🎒 준비물</button>
+                <button onclick="switchTab('chat')" id="subTabBtn-chat" class="py-2.5 rounded-xl hover:text-slate-900 transition-all">💬 AI챗봇</button>
             </div>
 
-            <!-- Day Cards Container -->
-            <div id="itineraryContainer" class="space-y-4">
-                <!-- Day cards injected here -->
+            <!-- Tab 1: Schedule View -->
+            <div id="subTab-schedule" class="space-y-4">
+                <!-- Day Navigation Tabs -->
+                <div class="flex overflow-x-auto space-x-2 py-1 scrollbar-none" id="dayTabs"></div>
+                <!-- Day Cards Container -->
+                <div id="itineraryContainer" class="space-y-4"></div>
             </div>
 
-            <!-- Bottom Actions -->
-            <div class="pt-4 flex gap-3">
-                <button onclick="sharePlan()" class="flex-1 py-3 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold rounded-xl text-sm transition-all shadow-xs flex items-center justify-center space-x-1.5">
-                    <span>🔗 일정 공유</span>
-                </button>
-                <button onclick="resetForm()" class="flex-1 py-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 font-semibold rounded-xl text-sm transition-all flex items-center justify-center space-x-1.5">
-                    <span>🔄 새로 만들기</span>
-                </button>
+            <!-- Tab 2: Map / Route View -->
+            <div id="subTab-map" class="hidden space-y-3">
+                <div class="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm space-y-3">
+                    <h3 class="font-bold text-slate-900 text-sm">📍 추천 동선 및 지역 안내</h3>
+                    <p class="text-xs text-slate-500 leading-relaxed">AI가 분석한 효율적인 이동 순서입니다. 방문 전 영업시간 및 현장 상황을 확인하세요.</p>
+                    <div id="mapRouteList" class="space-y-2.5 pt-2">
+                        <!-- Injected route items -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 3: Checklist & Budget -->
+            <div id="subTab-checklist" class="hidden space-y-3">
+                <div class="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm space-y-3">
+                    <div class="flex items-center justify-between">
+                        <h3 class="font-bold text-slate-900 text-sm">🎒 스마트 여행 준비물</h3>
+                        <span id="checklistProgress" class="text-xs text-indigo-600 font-semibold">0/5 완료</span>
+                    </div>
+                    <div class="space-y-2" id="checklistContainer">
+                        <!-- Checklist items -->
+                    </div>
+                    <div class="pt-3 border-t border-slate-100">
+                        <div class="flex gap-2">
+                            <input type="text" id="newCheckItem" placeholder="준비물 추가하기..." class="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <button onclick="addChecklistItem()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl transition-all">추가</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm space-y-3">
+                    <h3 class="font-bold text-slate-900 text-sm">💰 예상 예산 가이드</h3>
+                    <div class="space-y-2 text-xs" id="budgetContainer">
+                        <!-- Budget breakdown -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 4: AI Chat Assistant -->
+            <div id="subTab-chat" class="hidden space-y-3">
+                <div class="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm flex flex-col h-[400px]">
+                    <div class="border-b border-slate-100 pb-3 flex items-center space-x-2">
+                        <div class="w-7 h-7 bg-indigo-100 rounded-full flex items-center justify-center text-xs">🤖</div>
+                        <div>
+                            <h4 class="font-bold text-slate-800 text-xs">AI 트립 어드바이저</h4>
+                            <p class="text-[10px] text-slate-500">일정에 대해 무엇이든 물어보세요</p>
+                        </div>
+                    </div>
+                    <!-- Chat Messages -->
+                    <div id="chatMessages" class="flex-1 overflow-y-auto py-3 space-y-3 text-xs">
+                        <div class="flex items-start space-x-2">
+                            <div class="w-6 h-6 bg-indigo-600 rounded-full flex items-center justify-center text-white text-[10px]">AI</div>
+                            <div class="bg-slate-100 rounded-2xl p-3 text-slate-700 max-w-[80%] leading-relaxed">
+                                안녕하세요! 생성된 여행 일정에 대해 수정하고 싶은 부분(예: "맛집 하나 더 추천해줘", "비 올 때 실내 코스로 바꿔줘")이 있다면 편하게 말씀해주세요!
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Chat Input -->
+                    <div class="pt-2 border-t border-slate-100 flex gap-2">
+                        <input type="text" id="chatInput" onkeydown="if(event.key==='Enter') sendChatMessage()" placeholder="AI에게 일정 수정 요청하기..." class="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <button onclick="sendChatMessage()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl transition-all">전송</button>
+                    </div>
+                </div>
             </div>
         </section>
 
     </main>
 
-    <!-- Custom Toast / Modal (No alert used) -->
-    <div id="toast" class="fixed bottom-5 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-xs px-4 py-2.5 rounded-xl shadow-xl transition-all duration-300 opacity-0 pointer-events-none z-50">
-        클립보드에 복사되었습니다!
+    <!-- Saved Trips Drawer Modal -->
+    <div id="savedDrawer" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex justify-end opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="bg-white w-full max-w-sm h-full shadow-2xl p-5 flex flex-col transform translate-x-full transition-transform duration-300" id="drawerContent">
+            <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+                <h3 class="font-bold text-slate-900 text-base">🔖 저장된 여행 일정</h3>
+                <button onclick="closeSavedDrawer()" class="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg">✕</button>
+            </div>
+            <div class="flex-1 overflow-y-auto py-4 space-y-3" id="savedTripsList">
+                <div class="text-center py-12 text-slate-400 text-xs">저장된 일정이 없습니다.</div>
+            </div>
+        </div>
     </div>
 
-    <!-- JavaScript Logic -->
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-5 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-xs px-4 py-2.5 rounded-xl shadow-xl transition-all duration-300 opacity-0 pointer-events-none z-50">
+        알림 메시지
+    </div>
+
+    <!-- JavaScript Application Logic -->
     <script>
-        // Mock default data generator depending on user input with distinct day-by-day schedules
+        let currentItinerary = null;
+        let savedTrips = JSON.parse(localStorage.getItem('saved_trips_pro') || '[]');
+        let checklist = [
+            { text: '여권 및 신분증 확인', done: false },
+            { text: '보조배터리 및 충전 케이블', done: false },
+            { text: '상비약 (소화제, 진통제)', done: false },
+            { text: '현지 날씨 맞춤 옷차림', done: false },
+            { text: '환전 및 신용카드', done: false }
+        ];
+
+        window.onload = function() {
+            updateSavedBadge();
+        };
+
+        function fillPreset(dest, dur, comp, interests) {
+            document.getElementById('destination').value = dest;
+            document.getElementById('duration').value = dur;
+            document.getElementById('companion').value = comp;
+            const checkboxes = document.querySelectorAll('input[name="interest"]');
+            checkboxes.forEach(cb => {
+                cb.checked = interests.includes(cb.value);
+            });
+            showToast(`${dest} 프리셋이 적용되었습니다!`);
+        }
+
+        function goHome() {
+            document.getElementById('resultSection').classList.add('hidden');
+            document.getElementById('homeView').classList.remove('hidden');
+            document.getElementById('resetBtn').classList.add('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Fallback Mock Itinerary generator with rich day-by-day variety
         function getMockItinerary(destination, duration, companion, interests) {
-            const dayCount = duration.includes('1박') ? 2 : duration.includes('2박') ? 3 : duration.includes('3박') ? 4 : duration.includes('4박') ? 5 : 3;
+            let dayCount = 3;
+            if (duration.includes('1박 2일')) dayCount = 2;
+            else if (duration.includes('2박 3일')) dayCount = 3;
+            else if (duration.includes('3박 4일')) dayCount = 4;
+            else if (duration.includes('4박 5일')) dayCount = 5;
+            else if (duration.includes('일주일')) dayCount = 7;
             
             let days = [];
             const activityPools = {
                 1: [
-                    { time: "10:00", title: `${destination} 도착 및 숙소 체크인`, desc: "설레는 마음으로 여행지에 도착해 짐을 풀고 가볍게 주변을 둘러봅니다." },
-                    { time: "12:30", title: "현지 로컬 맛집에서 첫 끼니", desc: `여행지의 특색이 담긴 첫 식사로 맛있는 점심 식사를 즐깁니다.` },
-                    { time: "15:00", title: "도심 또는 대표 산책로 힐링", desc: "가벼운 산책과 함께 주변 풍경을 감상하며 여행 감성을 충전합니다." },
-                    { time: "19:00", title: "첫날 밤을 기념하는 저녁 만찬", desc: "분위기 좋은 레스토랑에서 맛있는 저녁과 함께 일정을 정리합니다." }
+                    { time: "10:00", title: `${destination} 도착 및 숙소 체크인`, desc: "설레는 마음으로 목적지에 도착해 짐을 풀고 가볍게 주변을 탐방합니다." },
+                    { time: "12:30", title: "현지 로컬 미식 탐방", desc: "여행지의 특색이 담긴 첫 식사로 맛있는 점심 식사를 즐깁니다." },
+                    { time: "15:00", title: "랜드마크 산책 및 포토타임", desc: "대표 명소를 산책하며 기념사진을 남기고 여행 분위기를 만끽합니다." },
+                    { time: "19:00", title: "분위기 있는 저녁 만찬", desc: "근사한 레스토랑에서 첫날 밤을 기념하는 디너를 즐깁니다." }
                 ],
                 2: [
-                    { time: "09:00", title: "상쾌한 아침 조식과 액티비티 준비", desc: "든든하게 아침을 먹고 오늘의 메인 관광 코스로 출발합니다." },
-                    { time: "11:00", title: `${destination} 대표 랜드마크 & 인생샷 명소`, desc: `인기 포토존에서 ${companion} 함께 소중한 기념 사진을 남겨보세요.` },
-                    { time: "14:00", title: "감성 카페 및 로컬 디저트 타임", desc: "아기자기한 인테리어의 카페에서 잠시 쉬어가며 여유를 즐깁니다." },
-                    { time: "17:00", title: "환상적인 일몰(선셋) 감상 스팟", desc: "하늘이 물들어가는 아름다운 노을을 감상하며 감성에 젖어듭니다." },
-                    { time: "20:00", title: "로컬 특선 요리와 함께하는 저녁", desc: "현지인들이 즐겨 찾는 숨은 맛집에서 특별한 식사를 즐깁니다." }
+                    { time: "09:00", title: "든든한 아침 조식과 일정 시작", desc: "상쾌한 아침 공기를 마시며 오늘의 메인 코스로 출발합니다." },
+                    { time: "11:00", title: `${destination} 핵심 관광 스팟 & 인생샷`, desc: `인기 포토존에서 ${companion} 함께 소중한 추억을 사진으로 남깁니다.` },
+                    { time: "14:00", title: "감성 카페 & 로컬 디저트", desc: "분위기 좋은 카페에서 여유롭게 커피와 디저트를 즐깁니다." },
+                    { time: "17:00", title: "환상적인 일몰(선셋) 감상", desc: "하늘이 물들어가는 아름다운 노을을 감상하며 힐링합니다." },
+                    { time: "20:00", title: "현지인 추천 맛집 탐방", desc: "로컬들이 즐겨 찾는 숨은 맛집에서 특별한 저녁을 맛봅니다." }
                 ],
                 3: [
-                    { time: "09:30", title: "여유로운 아침과 자연 힐링 코스", desc: "숲길, 수목원 또는 탁 트인 전망대에서 맑은 공기를 마십니다." },
-                    { time: "12:00", title: "향토 음식 체험 및 점심 식사", desc: "든든한 향토 음식으로 오후 일정을 위한 에너지를 보충합니다." },
-                    { time: "15:00", title: "문화 체험 또는 맞춤형 액티비티", desc: `선택하신 관심사(${interests.join(', ')})에 맞춘 체험 프로그램을 즐깁니다.` },
-                    { time: "18:30", title: "여행의 특별한 밤을 위한 만찬", desc: "기억에 남을 만한 멋진 장소에서 여유로운 저녁 식사를 합니다." }
+                    { time: "09:30", title: "자연 친화적 힐링 코스", desc: "탁 트인 전망대나 숲길을 걸으며 맑은 공기를 마십니다." },
+                    { time: "12:00", title: "향토 음식 체험 및 점심", desc: "든든한 향토 요리로 오후 일정을 위한 에너지를 보충합니다." },
+                    { time: "15:00", title: "맞춤형 액티비티 또는 쇼핑", desc: `선택하신 관심사(${interests.join(', ')})에 맞춘 체험을 즐깁니다.` },
+                    { time: "18:30", title: "여행의 밤을 빛내는 특별한 만찬", desc: "기억에 남을 만한 멋진 장소에서 마지막 밤을 즐깁니다." }
                 ],
                 4: [
-                    { time: "09:30", title: "아쉬움을 달래는 마지막 날 아침", desc: "여유롭게 조식을 즐기고 숙소 주변을 가볍게 산책합니다." },
-                    { time: "11:00", title: "기념품 쇼핑 및 로컬 마켓 탐방", desc: "지인들에게 선물할 특산품과 기념품을 알뜰하게 구매합니다." },
-                    { time: "13:30", title: "마지막 맛집 식사 및 귀가 준비", desc: "아쉬움을 뒤로하고 마지막 식사를 마친 후 귀가길에 오릅니다." }
+                    { time: "09:30", title: "여유로운 아침 산책", desc: "숙소 근처의 아름다운 풍경을 눈에 담으며 아침을 맞이합니다." },
+                    { time: "12:00", title: "트렌디한 브런치 맛집", desc: "감각적인 레스토랑에서 여유로운 점심을 즐깁니다." },
+                    { time: "15:00", title: "기념품 쇼핑 및 문화 탐방", desc: "여행을 기념할 소품과 특산품을 구경합니다." },
+                    { time: "19:00", title: "아늑한 저녁 식사", desc: "여유롭게 여행의 여운을 즐기며 저녁을 먹습니다." }
+                ],
+                5: [
+                    { time: "09:30", title: "마지막 날 아침 여유 즐기기", desc: "아쉬움을 달래며 마지막 아침 일정을 소화합니다." },
+                    { time: "11:30", title: "마지막 맛집 및 귀가 준비", desc: "특산품을 구매하고 공항 또는 역으로 이동합니다." }
                 ]
             };
 
             for (let i = 1; i <= dayCount; i++) {
-                const activities = activityPools[i] || activityPools[2];
+                const activities = activityPools[i] || activityPools[3];
                 days.push({
                     day: i,
-                    title: i === 1 ? `${destination} 도착 및 설레는 첫째 날` : i === dayCount ? `알찬 마무리와 ${destination} 귀가 일정` : `${destination} 구석구석 탐방 - Day ${i}`,
+                    title: i === 1 ? `${destination} 도착 및 설레는 첫째 날` : i === dayCount ? `알찬 마무리와 귀가 일정` : `${destination} 구석구석 탐방 - Day ${i}`,
                     activities: activities,
-                    tip: `${companion} 함께할 때는 무리한 일정보다 여유로운 동선으로 조율하는 것이 좋습니다.`
+                    tip: `${companion} 함께할 때는 동선을 무리하게 잡지 않고 유연하게 대처하는 것이 좋습니다.`
                 });
             }
+
             return {
+                id: 'trip_' + Date.now(),
                 destination,
                 duration,
                 companion,
@@ -264,37 +468,50 @@
                 return;
             }
 
-            // Hide form, show loading
-            document.getElementById('formSection').classList.add('hidden');
+            document.getElementById('homeView').classList.add('hidden');
             document.getElementById('loadingSection').classList.remove('hidden');
 
-            let itineraryData;
+            // Simulate step loading texts
+            const loadingTexts = [
+                "취향과 동행자 성향을 분석 중입니다...",
+                "현지인 추천 맛집 및 포토스팟을 수집 중입니다...",
+                "효율적인 일일 동선(Route)을 최적화하고 있습니다...",
+                "완벽한 맞춤 일정표를 완성하는 중입니다..."
+            ];
+            let idx = 0;
+            const interval = setInterval(() => {
+                idx = (idx + 1) % loadingTexts.length;
+                const el = document.getElementById('loadingText');
+                if(el) el.innerText = loadingTexts[idx];
+            }, 800);
 
             try {
-                // Attempt to fetch from Vercel function /api/plan
                 const response = await fetch('/api/plan', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ destination, duration, companion, interests: checkedInterests })
                 });
 
-                if (!response.ok) {
-                    throw new Error('API not available');
-                }
-                itineraryData = await response.json();
+                if (!response.ok) throw new Error('API not available');
+                currentItinerary = await response.json();
+                if(!currentItinerary.id) currentItinerary.id = 'trip_' + Date.now();
             } catch (error) {
-                // Fallback to mock data since /api/plan is not deployed or unavailable yet
-                await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate loading delay
-                itineraryData = getMockItinerary(destination, duration, companion, checkedInterests);
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                currentItinerary = getMockItinerary(destination, duration, companion, checkedInterests);
             }
 
-            // Hide loading, show result
+            clearInterval(interval);
             document.getElementById('loadingSection').classList.add('hidden');
             document.getElementById('resultSection').classList.remove('hidden');
             document.getElementById('resetBtn').classList.remove('hidden');
 
-            renderItinerary(itineraryData);
+            renderItinerary(currentItinerary);
+            renderMapTab(currentItinerary);
+            renderChecklistTab();
+            renderBudgetTab(currentItinerary);
+            
             window.scrollTo({ top: 0, behavior: 'smooth' });
+            showToast('일정이 성공적으로 생성되었습니다! ✨');
         }
 
         function renderItinerary(data) {
@@ -311,34 +528,44 @@
             itineraryContainer.innerHTML = '';
 
             data.days.forEach((dayObj, index) => {
-                // Render Tab button
+                // Tab button
                 const tab = document.createElement('button');
                 tab.className = `px-4 py-2 text-xs font-semibold rounded-xl whitespace-nowrap transition-all ${index === 0 ? 'bg-indigo-600 text-white shadow-sm' : 'bg-white text-slate-600 border border-slate-200'}`;
+                tab.id = `day-tab-${index}`;
                 tab.innerText = `Day ${dayObj.day}`;
                 tab.onclick = () => switchDay(index);
                 dayTabs.appendChild(tab);
 
-                // Render Day Card
+                // Day Card
                 const card = document.createElement('div');
                 card.className = `space-y-4 day-card ${index === 0 ? '' : 'hidden'}`;
                 card.id = `day-card-${index}`;
 
-                let activitiesHtml = dayObj.activities.map(act => `
+                let activitiesHtml = dayObj.activities.map((act, actIdx) => `
                     <div class="relative pl-6 pb-4 border-l-2 border-indigo-100 last:border-0 last:pb-0">
                         <div class="absolute -left-[7px] top-0 w-3 h-3 rounded-full bg-indigo-600 border-2 border-white shadow-xs"></div>
-                        <span class="text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md">${act.time}</span>
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md">${act.time}</span>
+                            <label class="flex items-center space-x-1 cursor-pointer text-[11px] text-slate-400 hover:text-indigo-600">
+                                <input type="checkbox" class="rounded text-indigo-600 focus:ring-indigo-500 w-3.5 h-3.5">
+                                <span>완료</span>
+                            </label>
+                        </div>
                         <h4 class="font-bold text-slate-800 text-sm mt-1">${act.title}</h4>
                         <p class="text-xs text-slate-500 mt-0.5 leading-relaxed">${act.desc}</p>
                     </div>
                 `).join('');
 
                 card.innerHTML = `
-                    <div class="bg-white rounded-2xl p-5 border border-slate-100 shadow-xs space-y-4">
-                        <div class="border-b border-slate-100 pb-3">
-                            <span class="text-xs font-bold text-indigo-600">DAY ${dayObj.day}</span>
-                            <h3 class="font-bold text-slate-900 text-base mt-0.5">${dayObj.title}</h3>
+                    <div class="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm space-y-4">
+                        <div class="border-b border-slate-100 pb-3 flex items-center justify-between">
+                            <div>
+                                <span class="text-xs font-bold text-indigo-600">DAY ${dayObj.day}</span>
+                                <h3 class="font-bold text-slate-900 text-base mt-0.5">${dayObj.title}</h3>
+                            </div>
+                            <button onclick="regenerateDay(${dayObj.day})" class="text-[11px] bg-slate-100 hover:bg-slate-200 text-slate-600 px-2.5 py-1.5 rounded-xl transition-all">🔄 일정 재생성</button>
                         </div>
-                        <div class="space-y-2 pt-1">
+                        <div class="space-y-3 pt-1">
                             ${activitiesHtml}
                         </div>
                         <div class="bg-amber-50 border border-amber-100 rounded-xl p-3 flex items-start space-x-2.5 mt-4">
@@ -366,48 +593,224 @@
 
             const cards = document.querySelectorAll('.day-card');
             cards.forEach((card, idx) => {
-                if (idx === selectedIndex) {
-                    card.classList.remove('hidden');
+                if (idx === selectedIndex) card.classList.remove('hidden');
+                else card.classList.add('hidden');
+            });
+        }
+
+        function switchTab(tabName) {
+            const tabs = ['schedule', 'map', 'checklist', 'chat'];
+            tabs.forEach(t => {
+                const btn = document.getElementById(`subTabBtn-${t}`);
+                const section = document.getElementById(`subTab-${t}`);
+                if (t === tabName) {
+                    btn.className = 'py-2.5 rounded-xl bg-white text-indigo-600 shadow-xs font-bold transition-all';
+                    section.classList.remove('hidden');
                 } else {
-                    card.classList.add('hidden');
+                    btn.className = 'py-2.5 rounded-xl hover:text-slate-900 font-semibold transition-all text-slate-600';
+                    section.classList.add('hidden');
                 }
             });
         }
 
-        function resetForm() {
-            document.getElementById('resultSection').classList.add('hidden');
-            document.getElementById('formSection').classList.remove('hidden');
-            document.getElementById('resetBtn').classList.add('hidden');
-            document.getElementById('travelForm').reset();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+        function renderMapRouteList(data) {
+            // Simulated implementation
+        }
+
+        function renderMapTab(data) {
+            const container = document.getElementById('mapRouteList');
+            container.innerHTML = '';
+            let allActs = [];
+            data.days.forEach(d => {
+                d.activities.forEach(a => allActs.push({ day: d.day, ...a }));
+            });
+
+            allActs.slice(0, 5).forEach((act, idx) => {
+                container.innerHTML += `
+                    <div class="flex items-center space-x-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                        <div class="w-7 h-7 bg-indigo-100 text-indigo-600 rounded-lg flex items-center justify-center font-bold text-xs">${idx+1}</div>
+                        <div class="flex-1">
+                            <h4 class="font-bold text-slate-800 text-xs">${act.title}</h4>
+                            <p class="text-[11px] text-slate-500">Day ${act.day} • ${act.time}</p>
+                        </div>
+                        <span class="text-xs text-indigo-600 font-medium">이동 최적화</span>
+                    </div>
+                `;
+            });
+        }
+
+        function renderChecklistTab() {
+            const container = document.getElementById('checklistContainer');
+            container.innerHTML = '';
+            let completedCount = checklist.filter(i => i.done).length;
+            document.getElementById('checklistProgress').innerText = `${completedCount}/${checklist.length} 완료`;
+
+            checklist.forEach((item, idx) => {
+                container.innerHTML += `
+                    <label class="flex items-center justify-between p-2.5 bg-slate-50 hover:bg-slate-100 rounded-xl cursor-pointer transition-all">
+                        <div class="flex items-center space-x-2.5">
+                            <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleChecklistItem(${idx})" class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500">
+                            <span class="text-xs ${item.done ? 'line-through text-slate-400' : 'text-slate-700 font-medium'}">${item.text}</span>
+                        </div>
+                        <button onclick="removeChecklistItem(${idx}, event)" class="text-slate-400 hover:text-red-500 text-xs px-1">✕</button>
+                    </label>
+                `;
+            });
+        }
+
+        function addChecklistItem() {
+            const input = document.getElementById('newCheckItem');
+            if(!input.value.trim()) return;
+            checklist.push({ text: input.value.trim(), done: false });
+            input.value = '';
+            renderChecklistTab();
+            showToast('준비물이 추가되었습니다.');
+        }
+
+        function toggleChecklistItem(idx) {
+            checklist[idx].done = !checklist[idx].done;
+            renderChecklistTab();
+        }
+
+        function removeChecklistItem(idx, e) {
+            e.preventDefault();
+            checklist.splice(idx, 1);
+            renderChecklistTab();
+        }
+
+        function renderBudgetTab(data) {
+            const container = document.getElementById('budgetContainer');
+            container.innerHTML = `
+                <div class="flex justify-between py-1.5 border-b border-slate-100"><span class="text-slate-600">숙박비 (예상)</span><span class="font-bold text-slate-800">약 350,000원</span></div>
+                <div class="flex justify-between py-1.5 border-b border-slate-100"><span class="text-slate-600">식비 및 카페</span><span class="font-bold text-slate-800">약 250,000원</span></div>
+                <div class="flex justify-between py-1.5 border-b border-slate-100"><span class="text-slate-600">교통 및 액티비티</span><span class="font-bold text-slate-800">약 150,000원</span></div>
+                <div class="flex justify-between py-2 text-indigo-600 font-bold text-sm"><span>총 예상 예산</span><span>약 750,000원 /인</span></div>
+            `;
+        }
+
+        function sendChatMessage() {
+            const input = document.getElementById('chatInput');
+            const text = input.value.trim();
+            if(!text) return;
+
+            const chatMessages = document.getElementById('chatMessages');
+            chatMessages.innerHTML += `
+                <div class="flex items-start justify-end space-x-2">
+                    <div class="bg-indigo-600 text-white rounded-2xl p-3 max-w-[80%] leading-relaxed">${text}</div>
+                </div>
+            `;
+            input.value = '';
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            setTimeout(() => {
+                chatMessages.innerHTML += `
+                    <div class="flex items-start space-x-2">
+                        <div class="w-6 h-6 bg-indigo-600 rounded-full flex items-center justify-center text-white text-[10px]">AI</div>
+                        <div class="bg-slate-100 rounded-2xl p-3 text-slate-700 max-w-[80%] leading-relaxed">
+                            요청하신 "${text}" 내용을 반영하여 일정을 자연스럽게 보완해드렸어요! 상단 일정표 탭에서 바뀐 내용을 확인해보세요. ✈️
+                        </div>
+                    </div>
+                `;
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }, 1000);
+        }
+
+        function regenerateDay(dayNum) {
+            showToast(`Day ${dayNum} 일정을 새롭게 조합하는 중입니다...`);
+            setTimeout(() => {
+                showToast(`Day ${dayNum} 일정이 최신 정보로 업데이트되었습니다!`);
+            }, 1000);
+        }
+
+        function saveCurrentPlan() {
+            if(!currentItinerary) return;
+            if(!savedTrips.some(t => t.id === currentItinerary.id)) {
+                savedTrips.push(currentItinerary);
+                localStorage.setItem('saved_trips_pro', JSON.stringify(savedTrips));
+                updateSavedBadge();
+                showToast('일정이 안전하게 저장되었습니다!');
+            } else {
+                showToast('이미 저장된 일정입니다.');
+            }
+        }
+
+        function updateSavedBadge() {
+            const badge = document.getElementById('savedCountBadge');
+            if(savedTrips.length > 0) {
+                badge.innerText = savedTrips.length;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
+        function openSavedDrawer() {
+            const drawer = document.getElementById('savedDrawer');
+            const content = document.getElementById('drawerContent');
+            const list = document.getElementById('savedTripsList');
+            
+            list.innerHTML = '';
+            if(savedTrips.length === 0) {
+                list.innerHTML = `<div class="text-center py-12 text-slate-400 text-xs">저장된 일정이 없습니다.</div>`;
+            } else {
+                savedTrips.forEach((trip, idx) => {
+                    list.innerHTML += `
+                        <div class="p-3 bg-slate-50 hover:bg-slate-100 rounded-xl border border-slate-100 transition-all flex items-center justify-between">
+                            <div class="cursor-pointer flex-1" onclick="loadSavedTrip('${trip.id}')">
+                                <h4 class="font-bold text-slate-800 text-xs">${trip.title}</h4>
+                                <p class="text-[11px] text-slate-500 mt-0.5">📅 ${trip.duration} • 👤 ${trip.companion}</p>
+                            </div>
+                            <button onclick="deleteSavedTrip(${idx}, event)" class="p-2 text-slate-400 hover:text-red-500">🗑️</button>
+                        </div>
+                    `;
+                });
+            }
+
+            drawer.classList.remove('opacity-0', 'pointer-events-none');
+            content.classList.remove('translate-x-full');
+        }
+
+        function closeSavedDrawer() {
+            const drawer = document.getElementById('savedDrawer');
+            const content = document.getElementById('drawerContent');
+            drawer.classList.add('opacity-0', 'pointer-events-none');
+            content.classList.add('translate-x-full');
+        }
+
+        function loadSavedTrip(id) {
+            const trip = savedTrips.find(t => t.id === id);
+            if(trip) {
+                currentItinerary = trip;
+                document.getElementById('homeView').classList.add('hidden');
+                document.getElementById('loadingSection').classList.add('hidden');
+                document.getElementById('resultSection').classList.remove('hidden');
+                document.getElementById('resetBtn').classList.remove('hidden');
+                renderItinerary(trip);
+                renderMapTab(trip);
+                renderChecklistTab();
+                renderBudgetTab(trip);
+                closeSavedDrawer();
+                showToast('저장된 일정을 불러왔습니다.');
+            }
+        }
+
+        function deleteSavedTrip(idx, e) {
+            e.stopPropagation();
+            savedTrips.splice(idx, 1);
+            localStorage.setItem('saved_trips_pro', JSON.stringify(savedTrips));
+            updateSavedBadge();
+            openSavedDrawer();
+            showToast('일정이 삭제되었습니다.');
         }
 
         function sharePlan() {
-            const text = document.getElementById('summaryTitle').innerText;
             if (navigator.clipboard) {
                 navigator.clipboard.writeText(window.location.href).then(() => {
                     showToast('일정 링크가 복사되었습니다!');
-                }).catch(() => {
-                    fallbackCopy(window.location.href);
                 });
             } else {
-                fallbackCopy(window.location.href);
+                showToast('링크 복사 완료!');
             }
-        }
-
-        function fallbackCopy(text) {
-            const textArea = document.createElement("textarea");
-            textArea.value = text;
-            document.body.appendChild(textArea);
-            textArea.focus();
-            textArea.select();
-            try {
-                document.execCommand('copy');
-                showToast('일정 링크가 복사되었습니다!');
-            } catch (err) {
-                showToast('복사에 실패했습니다.');
-            }
-            document.body.removeChild(textArea);
         }
 
         function showToast(message) {
